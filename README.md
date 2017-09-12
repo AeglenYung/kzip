@@ -16,7 +16,7 @@ Command line tool for Zip file on Windows and Ubuntu
 * kzip -?
 
 **Command Help:**
-* kzip [-c|-v|-x] [-?|-h|--help]
+* kzip [-c, -v, -x] [-?, -h, --help]
 * kzip -c -?
 * kzip -v -?
 * kzip -x -?
@@ -30,75 +30,58 @@ Command line tool for Zip file on Windows and Ubuntu
 * kzip -x --file=backup.zip
 
 **Switch options:**
-Id|Name|Info
---|----|----
--v|--command-view| 
--c|--command-create| 
--x|--command-extract| 
--q|--quiet| 
- |--md5|Unique by MD5
- |--xhash|Unique by xxHash
- |--debug| 
+* -v, --command-view
+* -c, --command-create 
+* -x, --command-extract
+* -q, --quiet, 
+* --md5, Unique by MD5
+* --xhash, Unique by xxHash
+* --debug
 
 **Value options:**
-Id|Name|Info
---|----|----
--f|--file|=zip-filename
+* -f, --file, =zip-filename
 
 ## Create command:
 * kzip -cf new.ZIP [opt ..] [file ..]
 
 **Switch options:**
-Id|Name|Info
---|----|----
- |--ask-password| 
+* --ask-password
 
 **Value options:**
-Id|Name|Info
---|----|----
--p|--password| 
- |--temp-dir| 
- |--level|=1 to 9 (0:Store; 5:Default; 9:Best)
- |--encrypt|=[256|128|weak] (256:Default)
--T|--list|=listFile (Console if -)
+* -p, --password 
+* --temp-dir
+* --level, =1 to 9 (0:Store; 5:Default; 9:Best)
+* --encrypt, =[256, 128, weak] (256:Default)
+* -T, --list, =listFile (Console if -)
 
 ## View command:
 * kzip -vf file.zip [opt ..]
 
 **Switch options:**
-Id|Name|Info
---|----|----
--t|--total|Total only
--s|--sum|Sum by ext
+* -t, --total, Total only
+* -s, --sum, Sum by ext
 
 **Value options:**
-Id|Name|Info
- |--size|=short or comma or kilo
- |--count|=short or comma or kilo
- |--hide|=size,date,time
- |--show|=ratio,crc,encrypt,all
- |--sort|=name or date or size
+* --size, =short or comma or kilo
+* --count, =short or comma or kilo
+* --hide, =size, date, time
+* --show, =ratio, crc, encrypt, all
+* --sort, =name or date or size
 
 ## Extract command:
 * kzip -xf file.ZIP [opt ..] [file ..]
 
 **Switch options:**
-Id|Name|Info
---|----|----
- |--ask-password| 
- |--fix-name|Remove invalid path char
--n|--new-dir|Create zip-filename for out-dir 
+* --ask-password
+* --fix-name, Remove invalid path char
+* -n, --new-dir, Create zip-filename for out-dir 
 
 **Value options:**
-Id|Name|Info
---|----|----
--p|--password| 
--o|--out-dir|=NewDir
+* -p, --password
+* -o, --out-dir, =NewDir
 
 ##Config file option:
-Id|Name|Info
---|----|----
-|--cfg-off|=exe or private or all
-|--cfg-save|=exe or private
-|--cfg-show| 
+* --cfg-off, =exe or private or all
+* --cfg-save, =exe or private
+* --cfg-show
 
