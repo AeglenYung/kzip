@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kzip", "kzip\kzip.csproj", "{12017289-72B8-47D1-954C-D00C81FAC229}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MyConfig", "MyConfig", "{87966380-9AA7-46A8-B1CD-398EE5209EA3}"
+	ProjectSection(SolutionItems) = preProject
+		MyConfig\MyConfigBaseFactory.cs = MyConfig\MyConfigBaseFactory.cs
+		MyConfig\MyConfigBaseSwitch.cs = MyConfig\MyConfigBaseSwitch.cs
+		MyConfig\MyConfigCommand.cs = MyConfig\MyConfigCommand.cs
+		MyConfig\MyConfigEnvir.cs = MyConfig\MyConfigEnvir.cs
+		MyConfig\MyConfigHelper.cs = MyConfig\MyConfigHelper.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dirz", "dirz\dirz.csproj", "{D29A1813-FF8B-40B9-8065-CC71A1B401B9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12017289-72B8-47D1-954C-D00C81FAC229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12017289-72B8-47D1-954C-D00C81FAC229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12017289-72B8-47D1-954C-D00C81FAC229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12017289-72B8-47D1-954C-D00C81FAC229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D29A1813-FF8B-40B9-8065-CC71A1B401B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D29A1813-FF8B-40B9-8065-CC71A1B401B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D29A1813-FF8B-40B9-8065-CC71A1B401B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D29A1813-FF8B-40B9-8065-CC71A1B401B9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
