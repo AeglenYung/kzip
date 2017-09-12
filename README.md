@@ -7,87 +7,90 @@ Command line tool for Zip file on Windows and Ubuntu
 2. xxHashSharp by Seok-Ju, Yun
 
 ## Basic Usage
-Syntax:
-	kzip -cf new.ZIP  [opt ..] [file ..]
-	kzip -vf file.ZIP [opt ..]
-	kzip -xf file.ZIP [opt ..] [file ..]
-Help:
-	kzip -?
-	kzip [-c|-v|-x] [-?|-h|--help]
-Version:
-	kzip --version
+**Syntax:**
+kzip -cf new.ZIP  [opt ..] [file ..]
+kzip -vf file.ZIP [opt ..]
+kzip -xf file.ZIP [opt ..] [file ..]
 
-Sample:
-	kzip -cf backup.zip readme.txt
-	kzip -vf backup.zip
-	kzip -x --file=backup.zip
+**Help:**
+kzip -?
 
-Switch options:
-	 -v, --command-view	 
-	 -c, --command-create	 
-	 -x, --command-extract	 
-	 -q, --quiet	 
-	     --md5	 Unique by MD5
-	     --xhash	 Unique by xxHash
-	     --debug	 
+kzip [-c|-v|-x] [-?|-h|--help]
+That is,
+kzip -c -?
+kzip -v -?
+kzip -x -?
 
-Value options:
-	 -f, --file	 =zip-filename
+**Version:**
+kzip --version
 
-## Create Zip File Syntax:
-Create command:
-	kzip -cf new.ZIP [opt ..] [file ..]
+**Sample:**
+kzip -cf backup.zip readme.txt
+kzip -vf backup.zip
+kzip -x --file=backup.zip
 
-Switch options:
-	     --ask-password	 
+**Switch options:**
+Id|Name|Info
+-v|--command-view| 
+-c|--command-create| 
+-x|--command-extract| 
+-q|--quiet| 
+ |--md5|Unique by MD5
+ |--xhash|Unique by xxHash
+ |--debug| 
 
-Value options:
-	 -p, --password	 
-	     --temp-dir	 
-	     --level	 =1 to 9 (0:Store; 5:Default; 9:Best)
-	     --encrypt	 =[256|128|weak] (256:Default)
-	 -T, --list	 =listFile	 Console if -
+**Value options:**
+Id|Name|Info
+-f|--file|=zip-filename
 
-Config file option:
-	     --cfg-off	 =exe|private|all
-	     --cfg-save	 =exe|private
-	     --cfg-show
+## Create command:
+kzip -cf new.ZIP [opt ..] [file ..]
 
-## View Zip File Syntax:
-View command:
-	kzip -vf file.zip [opt ..]
+**Switch options:**
+Id|Name|Info
+ |--ask-password| 
 
-Switch options:
+**Value options:**
+Id|Name|Info
+-p|--password| 
+ |--temp-dir| 
+ |--level|=1 to 9 (0:Store; 5:Default; 9:Best)
+ |--encrypt|=[256|128|weak] (256:Default)
+-T|--list|=listFile (Console if -)
+
+## View command:
+kzip -vf file.zip [opt ..]
+
+**Switch options:**
+Id|Name|Info
 	 -t, --total	 Total only
 	 -s, --sum	 Sum by ext
 
-Value options:
-	     --size	 =short|comma|kilo
-	     --count	 =short|comma|kilo
+**Value options:**
+Id|Name|Info
+	     --size	 =short or comma or kilo
+	     --count	 =short or comma or kilo
 	     --hide	 =size,date,time
 	     --show	 =ratio,crc,encrypt,all
-	     --sort	 =name|date|size
+	     --sort	 =name or date or size
 
-Config file option:
-	     --cfg-off	 =exe|private|all
-	     --cfg-save	 =exe|private
-	     --cfg-show
+## Extract command:
+kzip -xf file.ZIP [opt ..] [file ..]
 
-## Extract Zip File Syntax:
-Extract command:
-	kzip -xf file.ZIP [opt ..] [file ..]
+**Switch options:**
+Id|Name|Info
+ |--ask-password| 
+ |--fix-name|Remove invalid path char
+-n|--new-dir|Create zip-filename for out-dir 
 
-Switch options:
-	     --ask-password	 
-	     --fix-name	 Remove invalid path char
-	 -n, --new-dir	 Create zip-filename for out-dir 
+**Value options:**
+Id|Name|Info
+-p|--password| 
+-o|--out-dir|=NewDir
 
-Value options:
-	 -p, --password	 
-	 -o, --out-dir	 =NewDir
-
-Config file option:
-	     --cfg-off	 =exe|private|all
-	     --cfg-save	 =exe|private
-	     --cfg-show
+##Config file option:
+Id|Name|Info
+|--cfg-off=exe or private or all
+|--cfg-save|=exe or private
+|--cfg-show
 
