@@ -80,7 +80,7 @@ Command line tool for Zip file on Windows and Ubuntu
 * -p, --password
 * -o, --out-dir, =NewDir
 
-##Config file option:
+## Config file option:
 * --cfg-off, =exe or private or all
 * --cfg-save, =exe or private
 * --cfg-show
