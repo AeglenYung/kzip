@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace kzip
 {
-    class ZipExtract : MyCommandConfig
+    class ZipExtract : CommandConfig
     {
         void ExtraEntry(ZipEntry zEntry, string fname)
         {
@@ -154,7 +154,7 @@ namespace kzip
         public override IReadOnlyCollection<ITypeCfgSetup> TypeSetups =>
             new ITypeCfgSetup[] {
                 new ValueCfgFactory<string>(
-                    arg => new Result<string>(arg),
+                    arg => arg,
                     arg => arg,
                     new ValueCfgSetup<string>[]
                     {

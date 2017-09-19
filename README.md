@@ -85,3 +85,5 @@ Command line tool for Zip file on Windows and Ubuntu
 * --cfg-save, =exe or private
 * --cfg-show
 
+# License
+BSD 2-clause license.

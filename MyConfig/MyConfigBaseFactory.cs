@@ -42,11 +42,11 @@ namespace My.Config
     public class ValueFactory<T> : ITypeSetup
         where T : IComparable
     {
-        public readonly Func<string, Result<T>> TryParse;
+        public readonly Func<string,T> TryParse;
         public readonly IReadOnlyCollection<ValueSetup<T>> Setups;
 
         public ValueFactory(
-            Func<string, Result<T>> tryParse,
+            Func<string, T> tryParse,
             IReadOnlyCollection<ValueSetup<T>> setups)
         {
             TryParse = tryParse;
@@ -54,7 +54,7 @@ namespace My.Config
         }
 
         public ValueFactory(
-            Func<string, Result<T>> tryParse, 
+            Func<string, T> tryParse, 
             ValueSetup<T> setup)
         {
             TryParse = tryParse;
@@ -68,15 +68,15 @@ namespace My.Config
                 .Where(setup => setup.ShortForm!=Helper.CfgFileOnly))
             {
                 if (Helper.IsPrintableShortForm(setup.ShortForm))
-                {
-                    rtn.Append($"\t -{setup.ShortForm}, ");
+                {   // ..........12
+                    rtn.Append($"  -{setup.ShortForm}, ");
                 }
                 else
                 { 
-                    // ........ \t -c,_
-                    rtn.Append("\t     ");
+                    // .........12-c,_
+                    rtn.Append("      ");
                 }
-                rtn.AppendLine($"--{setup.Name}\t {setup.Help}");
+                rtn.AppendLine($"--{setup.Name}{setup.Help}");
             }
             return rtn.ToString();
         }
@@ -94,11 +94,11 @@ namespace My.Config
                 var setupThe = anyFound2.First();
                 var result = TryParse(arg.Substring(
                     3 + setupThe.Name.Length));
-                if (result.Succeeded)
+                if (result!=null)
                 {
                     try
                     {
-                        setupThe.Setter(result.Value);
+                        setupThe.Setter(result);
                     }
                     catch (ArgumentOutOfRangeException ee)
                     {
@@ -120,11 +120,11 @@ namespace My.Config
                         "Value is NOT found for '" + setupThe.Name + "'"));
                 }
                 var result = TryParse(args.Current);
-                if (result.Succeeded)
+                if (result!=null)
                 {
                     try
                     {
-                        setupThe.Setter(result.Value);
+                        setupThe.Setter(result);
                     }
                     catch (ArgumentOutOfRangeException ee)
                     {
@@ -173,7 +173,7 @@ namespace My.Config
         public readonly Func<T, string> ToText;
 
         public ValueCfgFactory(
-            Func<string, Result<T>> tryParse,
+            Func<string,T> tryParse,
             Func<T,string> toText,
             IReadOnlyCollection<ValueCfgSetup<T>> setups)
             : base(tryParse,setups)
@@ -182,7 +182,7 @@ namespace My.Config
         }
 
         public ValueCfgFactory(
-            Func<string, Result<T>> tryParse,
+            Func<string, T> tryParse,
             Func<T, string> toText, 
             ValueCfgSetup<T> setup)
             : base(tryParse,setup)
@@ -203,11 +203,11 @@ namespace My.Config
                     var result = TryParse(
                         System.Net.WebUtility.HtmlDecode(
                         elm.Value));
-                    if (result.Succeeded)
+                    if (result!=null)
                     {
-                        setup.Setter(result.Value);
+                        setup.Setter(result);
                         log(String.Format("\t {0} is '{1}'",
-                            setup.Name, ToText(result.Value)));
+                            setup.Name, ToText(result)));
                         rtn += 1;
                     }
                 }

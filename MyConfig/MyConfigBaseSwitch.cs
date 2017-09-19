@@ -6,15 +6,7 @@ using System.Text;
 
 namespace My.Config
 {
-    public interface ISwitchSetup
-    {
-        char ShortForm { get; }
-        string Name { get; }
-        string Help { get; }
-        Action Setter { get; }
-    }
-
-    public class SwitchSetup : ISwitchSetup
+    public class SwitchSetup
     {
         public char ShortForm { get; private set; }
         public string Name { get; private set; }
@@ -74,7 +66,7 @@ namespace My.Config
     public static class SwitchHelper
     {
         public static string Help(
-            this IReadOnlyCollection<ISwitchSetup> setups)
+            this IReadOnlyCollection<SwitchSetup> setups)
         {
             var rtn = new StringBuilder();
             foreach (var setup in setups
@@ -84,13 +76,13 @@ namespace My.Config
                 //if (Helper.IsPrintableShortForm(setup.ShortForm))
                 var a1 = Helper.IsPrintableShortForm(setup.ShortForm);
                 if (a1)
-                {
-                    rtn.Append($"\t -{setup.ShortForm}, ");
+                {   // ..........12-c,_
+                    rtn.Append($"  -{setup.ShortForm}, ");
                 }
                 else
                 {
-                    // ........ \t -c,_
-                    rtn.Append("\t     ");
+                    // .........12-c,_
+                    rtn.Append("      ");
                 }
                 rtn.AppendLine($"--{setup.Name}\t {setup.Help}");
             }
@@ -98,7 +90,7 @@ namespace My.Config
         }
 
         public static bool ValueAssignment(
-            this IReadOnlyCollection<ISwitchSetup> setups,
+            this IReadOnlyCollection<SwitchSetup> setups,
             string arg)
         {
             System.Diagnostics.Debug.WriteLine(

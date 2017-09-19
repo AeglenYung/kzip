@@ -18,10 +18,12 @@ namespace kzip
         public readonly DateTime LastModified;
         public readonly int Crc;
         public readonly bool Encrypted;
+        public readonly EncryptionAlgorithm EncryptionAlgorithm;
 
         public ZipItem(string name, long size,
             long compressedSize, DateTime lastModified,
-            int crc, bool encrypted)
+            int crc, bool encrypted, 
+            EncryptionAlgorithm encryptionAlgorithm)
         {
             Name = name;
             Size = size;
@@ -29,6 +31,7 @@ namespace kzip
             LastModified = lastModified;
             Crc = crc;
             Encrypted = encrypted;
+            EncryptionAlgorithm = encryptionAlgorithm;
         }
 
         public override int GetHashCode()
@@ -46,7 +49,8 @@ namespace kzip
                     zEntry.CompressedSize,
                     zEntry.LastModified,
                     zEntry.Crc,
-                    zEntry.UsesEncryption);
+                    zEntry.UsesEncryption,
+                    zEntry.Encryption);
             }
         }
 
@@ -60,10 +64,11 @@ namespace kzip
                 _fileSum.Add(pairThe.Key);
                 foreach (var fname in pairThe.Value)
                 {
+                    var keyThe = pairThe.Key;
                     yield return new ZipItem(fname,
-                        pairThe.Key.Size, pairThe.Key.CompressedSize,
-                        pairThe.Key.LastModified, pairThe.Key.Crc,
-                        pairThe.Key.Encrypted);
+                        keyThe.Size, keyThe.CompressedSize,
+                        keyThe.LastModified, keyThe.Crc,
+                        keyThe.Encrypted, keyThe.EncryptionAlgorithm);
                 }
             }
         }
@@ -141,7 +146,7 @@ namespace kzip
                     var itemThe = new ZipItem(zEntry.FileName,
                         zEntry.UncompressedSize, zEntry.CompressedSize,
                         zEntry.LastModified, zEntry.Crc,
-                        zEntry.UsesEncryption);
+                        zEntry.UsesEncryption, zEntry.Encryption);
                     rtn.Add(itemThe, listThe);
                 }
             }

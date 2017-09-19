@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace dirz
 {
-    public class DirzConfig : MyCommandConfig
+    public class DirzConfig : CommandConfig
     {
         public override bool Apply(IReadOnlyCollection<string> args)
         {
@@ -158,12 +158,12 @@ namespace dirz
         public override IReadOnlyCollection<ITypeCfgSetup> TypeSetups =>
             new ITypeCfgSetup[]{
                 new ValueCfgFactory<string>(
-                    arg => new Result<string>(arg),
+                    arg => arg,
                     arg => arg,
                     new ValueCfgSetup<string>[]
                     {
                         new ValueCfgSetup<string>(
-                            "size","=short|comma|kilo",
+                            "size","=[short|comma|kilo]",
                             () => sizeFormat, valThe => {
                                 var val=valThe.ToLower();
                                 switch (val)
@@ -185,7 +185,7 @@ namespace dirz
                                 }
                             }),
                         new ValueCfgSetup<string>(
-                            "count","=short|comma|kilo",
+                            "count","=[short|comma|kilo]",
                             () => countFormat, valThe => {
                                 var val=valThe.ToLower();
                                 switch (val)

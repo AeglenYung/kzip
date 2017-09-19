@@ -9,36 +9,6 @@ namespace My.Config
     {
     }
 
-    public class Result<T>
-    {
-        public readonly Exception Exception;
-        public readonly bool Succeeded;
-        public readonly T Value;
-
-        private Result(int _1, int _2) { Succeeded = false; }
-        public static Result<T> False = new Result<T>(0, 0);
-
-        public Result(T value)
-        {
-            Succeeded = true;
-            Value = value;
-        }
-
-        public Result(Exception exception)
-        {
-            Succeeded = false;
-            Exception = exception;
-        }
-
-        private Result(bool _1, bool _2)
-        {
-            Succeeded = false;
-        }
-
-        public static Result<T> Failure =
-            new Result<T>(false, false);
-    }
-
     public enum ConfigFileType
     {
         ExeCfg,
@@ -119,7 +89,7 @@ namespace My.Config
             KeyValueConfigurationCollection cfg);
     }
 
-    public interface IMyCommandConfig
+    public interface ICommandConfig
     {
         string Help();
         IReadOnlyCollection<SwitchCfgSetup> SwitchSetups { get; }
@@ -128,10 +98,9 @@ namespace My.Config
         bool Apply(IReadOnlyCollection<string> args);
     }
 
-    public interface IMyCommandEnvir
+    public interface ICommandEnvir
     {
         string Help();
-        string[] ParseArgs(IReadOnlyCollection<string> args);
-        IMyCommandConfig InnerConfig();
+        Tuple<ICommandConfig,string[]> ParseArgs(IReadOnlyCollection<string> args);
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace kzip
 {
-    class ZipEnvir : MyConfigEnvir
+    class ZipEnvir : ConfigEnvir
     {
         static string MakeSyntax(string exeName)
         {
@@ -39,26 +39,23 @@ namespace kzip
         public static string HashMethod { get; private set; }
             = String.Empty;
 
-        public ZipEnvir(string exeName): base(MakeSyntax(exeName)
-            , new ISwitchSetup[] {
-                new SwitchSetup('v', "command-view", String.Empty,
-                    () => {
-                        MakeCommand<ZipView>(
-                            "View command:\n" +
-                            $"\t{exeName} -vf file.zip [opt ..]\n");
-                    }),
-                new SwitchSetup('c', "command-create", String.Empty,
-                    () => {
-                        MakeCommand<ZipCreate>(
-                            "Create command:\n" +
-                            $"\t{exeName} -cf new.ZIP [opt ..] [file ..]\n");
-                    }),
-                new SwitchSetup('x', "command-extract", String.Empty,
-                    () => {
-                        MakeCommand<ZipExtract>(
-                            "Extract command:\n" +
-                            $"\t{exeName} -xf file.ZIP [opt ..] [file ..]\n");
-                    }),
+        public ZipEnvir(string exeName): base(
+            MakeSyntax(exeName)
+            , new CommandSetup[] {
+                new CommandSetup('c', "create", () => {
+                    return new ZipCreate("Create command:\n" +
+                        $"\t{exeName} -cf new.ZIP [opt ..] [file ..]\n");
+                }),
+                new CommandSetup('v', "view", () => {
+                    return new ZipView("View command:\n" +
+                        $"\t{exeName} -vf file.zip [opt ..]\n");
+                }),
+                new CommandSetup('x', "extract", () => {
+                    return new ZipExtract("Extract command:\n" +
+                        $"\t{exeName} -xf file.ZIP [opt ..] [file ..]\n");
+                }),
+            }
+            , new SwitchSetup[] {
                 new SwitchSetup('q',"quiet",String.Empty,
                     () => { Quiet=true; }),
                 new SwitchSetup("md5", "Unique by MD5",
@@ -86,7 +83,7 @@ namespace kzip
             }
             , new ITypeSetup[] {
                 new ValueFactory<string>(
-                    arg => new Result<string>(arg),
+                    arg => arg,
                     new ValueSetup<string>(
                         'f',"file","=zip-filename",
                         val => { ZipFilename = val; }))

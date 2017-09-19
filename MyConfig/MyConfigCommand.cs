@@ -6,7 +6,7 @@ using System.Text;
 
 namespace My.Config
 {
-    public abstract class MyCommandConfig : IMyCommandConfig
+    public abstract class CommandConfig : ICommandConfig
     {
         protected readonly string HelpHint;
         protected readonly string CfgPrefix;
@@ -15,9 +15,9 @@ namespace My.Config
 
         public abstract IReadOnlyCollection<ITypeCfgSetup> TypeSetups { get; }
 
-        private MyCommandConfig() { }
+        private CommandConfig() { }
 
-        public MyCommandConfig(string helpHint, string cfgPrefix)
+        public CommandConfig(string helpHint, string cfgPrefix)
         {
             CfgPrefix = cfgPrefix;
             HelpHint = helpHint;
@@ -42,10 +42,10 @@ namespace My.Config
                 rtn.AppendLine(help);
             }
             rtn.AppendLine("Config file option:");
-            // ............... -c,+
-            rtn.AppendLine("\t     --cfg-off\t =exe|private|all");
-            rtn.AppendLine("\t     --cfg-save\t =exe|private");
-            rtn.AppendLine("\t     --cfg-show");
+            // .............12-c,_
+            rtn.AppendLine("      --cfg-off=[exe|private|all]");
+            rtn.AppendLine("      --cfg-save=[exe|private]");
+            rtn.AppendLine("      --cfg-show");
             return rtn.ToString();
         }
 

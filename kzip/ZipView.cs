@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace kzip
 {
-    public class ZipView : MyCommandConfig
+    public class ZipView : CommandConfig
     {
         public override bool Apply(IReadOnlyCollection<string> opts)
         {
@@ -99,7 +99,7 @@ namespace kzip
             ItemWrite.WithoutCrlf(CrcToText(arg.Crc));
             ItemWrite.WithoutCrlf(DateToText(arg.LastModified));
             ItemWrite.WithoutCrlf(TimeToText(arg.LastModified));
-            ItemWrite.WithoutCrlf(EncryptToText(arg.Encrypted));
+            ItemWrite.WithoutCrlf(EncryptToText(arg));
             ItemWrite.WithCrlf(arg.Name);
             return arg;
         }
@@ -118,10 +118,10 @@ namespace kzip
 
         Func<ZipSum, long, ZipSum> PrintTotal { get; set; }
 
-        string sizeFormat = Helper.Absent;
+        //string sizeFormat = Helper.Absent;
         public Func<Int64, String> Int64ToText { get; private set; }
 
-        string countFormat = Helper.Absent;
+        //string countFormat = Helper.Absent;
         public Func<Int32, String> Int32ToText { get; private set; }
 
         public Func<DateTime, String> DateToText { get; private set; }
@@ -129,7 +129,7 @@ namespace kzip
 
         public Func<Int64, Int64, String> RatioToText { get; private set; }
         public Func<Int32, String> CrcToText { get; private set; }
-        public Func<bool, String> EncryptToText { get; private set; }
+        public Func<ZipItem, String> EncryptToText { get; private set; }
 
         public SortZipEntry SortComparer { get; private set; }
             = SortZipEntry.Nothing;
@@ -154,51 +154,61 @@ namespace kzip
         public override IReadOnlyCollection<ITypeCfgSetup> TypeSetups => 
             new ITypeCfgSetup[]{
                 new ValueCfgFactory<string>(
-                    arg => new Result<string>(arg),
+                    arg => arg,
                     arg => arg,
                     new ValueCfgSetup<string>[]
                     {
                         new ValueCfgSetup<string>(
-                            "size","=short|comma|kilo",
-                            () => sizeFormat, valThe => {
+                            "size","=[short|comma|kilo]",
+                            () => {
+                                switch (Int64ToText(10240L).Trim())
+                                {
+                                    case "10K": return "kilo";
+                                    case "1,024": return "comma";
+                                    default: return Helper.Absent;
+                                }
+                            }, 
+                            valThe => {
                                 var val=valThe.ToLower();
                                 switch (val)
                                 {
                                     case "comma":
                                         Int64ToText = arg =>
                                             String.Format("{0,25:N0}",arg)+" ";
-                                        sizeFormat = val;
                                         break;
                                     case "kilo":
                                         Int64ToText = arg => arg.SizeK()+" ";
-                                        sizeFormat = val;
                                         break;
                                     default:
                                         Int64ToText = arg =>
                                             String.Format("{0,9}",arg)+" ";
-                                        sizeFormat = Helper.Absent;
                                         break;
                                 }
                             }),
                         new ValueCfgSetup<string>(
-                            "count","=short|comma|kilo",
-                            () => countFormat, valThe => {
+                            "count","=[short|comma|kilo]",
+                            () => {
+                                switch (Int32ToText(10240).Trim())
+                                {
+                                    case "10K": return "kilo";
+                                    case "10,240": return "comma";
+                                    default: return Helper.Absent;
+                                }
+                            }, 
+                            valThe => {
                                 var val=valThe.ToLower();
                                 switch (val)
                                 {
                                     case "comma":
                                         Int32ToText = arg =>
                                             String.Format("{0,13:N0}",arg)+" ";
-                                        countFormat = val;
                                         break;
                                     case "kilo":
                                         Int32ToText = arg => arg.SizeK()+" ";
-                                        countFormat = val;
                                         break;
                                     default:
                                         Int32ToText = arg =>
                                             String.Format("{0,5}",arg)+" ";
-                                        countFormat = Helper.Absent;
                                         break;
                                 }
                             }),
@@ -246,23 +256,29 @@ namespace kzip
                                             ShowFields.Add(val);
                                             break;
                                         case "encrypt":
-                                            EncryptToText = arg => (arg ? "*" : " ");
+                                            EncryptToText = arg => { //weak_
+                                                if (arg==null) return String.Empty;
+                                                return (arg.Encrypted) ? "*" : " ";
+                                            };
                                             ShowFields.Add(val);
                                             break;
                                         case "all":
                                             RatioToText = (num,dem) => dem.ReducedRatio(num);
                                             CrcToText = arg => arg.ToString("X08")+ " ";
-                                            EncryptToText = arg => (arg ? "*" : " ");
-                                            ShowFields.Add(val);
+                                            EncryptToText = arg => {
+                                                if (arg==null) return String.Empty;
+                                                return (arg.Encrypted) ? "*" : " "; 
+                                            };
+                                            ShowFields.Clear(); ShowFields.Add("all");
                                             break;
                                         default:
                                             throw new ArgumentOutOfRangeException(
                                                 "'" + val + "' is bad 'show' opt");
                                     }
                                 }
-                            })
-                            , new ValueCfgSetup<string>
-                            ( "sort", "=name|date|size"
+                            }),
+                        new ValueCfgSetup<string>
+                            ( "sort", "=[name|date|size|sort]"
                             , () =>
                                 (SortComparer==SortZipEntry.Nothing)
                                 ? Helper.Absent : SortComparer.ToString()
@@ -283,6 +299,9 @@ namespace kzip
                                         break;
                                     case "count":
                                         SortComparer = SortZipEntry.Count;
+                                        break;
+                                    case "ratio":
+                                        SortComparer = SortZipEntry.Ratio;
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException(
@@ -317,7 +336,7 @@ namespace kzip
                 }
                 TotalWrite.WithoutCrlf(DateToText(arg.Earliest));
                 TotalWrite.WithoutCrlf(TimeToText(arg.Earliest));
-                TotalWrite.WithoutCrlf(EncryptToText(false));
+                TotalWrite.WithoutCrlf(EncryptToText(null));
                 TotalWrite.WithoutCrlf(DateToText(arg.Lastest));
                 TotalWrite.WithoutCrlf(TimeToText(arg.Lastest));
                 var cntText = Int32ToText(arg.Count).Trim();
@@ -337,7 +356,7 @@ namespace kzip
 
     enum SumByZipEntry { Nothing, Ext, Dir };
 
-    public enum SortZipEntry { Nothing, Name, Size, Date, DateLast, Count };
+    public enum SortZipEntry { Nothing, Name, Size, Date, DateLast, Count, Ratio };
 
     static class ListEnvirHelper
     {
@@ -390,6 +409,9 @@ namespace kzip
                     return source.OrderBy(item => item.LastModified);
                 case SortZipEntry.Name:
                     return source.OrderBy(item => item.Name);
+                case SortZipEntry.Ratio:
+                    return source.OrderBy(entry =>
+                    entry.Size.ReducedRatio(entry.CompressedSize));
                 default:
                     return source;
             }
@@ -410,6 +432,9 @@ namespace kzip
                     return source.OrderBy(entry => entry.Count);
                 case SortZipEntry.Name:
                     return source.OrderBy(entry => entry.Name);
+                case SortZipEntry.Ratio:
+                    return source.OrderBy(entry => 
+                    entry.Size.ReducedRatio(entry.CompressedSize));
                 default:
                     return source;
             }

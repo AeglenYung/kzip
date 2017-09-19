@@ -64,7 +64,8 @@ namespace kzip
         private static void RunMain(string[] args)
         {
             var envir = new ZipEnvir(nameof(kzip));
-            var theArgs = envir.ParseArgs(args);
+            var parseRtn = envir.ParseArgs(args);
+            var theArgs = parseRtn.Item2;
             var badArgs = theArgs.Where(arg => arg.StartsWith("-"));
             if (badArgs.Any())
             {
@@ -77,18 +78,13 @@ namespace kzip
                 return;
             }
 
-            var theCfg = envir.InnerConfig();
-            if (theCfg == null)
-            {
-                Console.Write(envir.HelpHint);
-                return;
-            }
             if (String.IsNullOrEmpty(ZipEnvir.ZipFilename))
             {
                 Console.WriteLine("Filename is required!");
                 return;
             }
-            theCfg.Apply(theArgs);
+            var cmdThe = parseRtn.Item1;
+            cmdThe.Apply(theArgs);
         }
     }
 }

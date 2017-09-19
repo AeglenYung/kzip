@@ -11,19 +11,24 @@ using xxHashSharp;
 namespace kzip
 {
     using Hash2Filenames = Dictionary<string, Tuple<long,List<string>>>;
-    using OptionEntry = Result<ZipEntry>;
     using ZipSizes = Tuple<int,long, long>;
     
-    public class ZipCreate: MyCommandConfig
+    public class ZipCreate: CommandConfig
     {
         Func<string, string> FixDirectorySep = arg => arg;
 
         Hash2Filenames hash2Filenames = new Hash2Filenames();
 
-        OptionEntry AddNormalEntry(string filename, ZipFile zFile)
+        ZipEntry AddNormalEntry(string filename, ZipFile zFile)
         {
-            var newEntry = zFile.AddFile(filename);
-            return new OptionEntry(newEntry);
+            if (!File.Exists(filename)) return null;
+            return zFile.AddEntry(filename, (fname, zs) =>
+                {
+                    using (var ins = File.OpenRead(fname))
+                    {
+                        ins.CopyTo(zs);
+                    }
+                });
         }
 
         ZipSizes GetNormalipSizes(ZipFile _2)
@@ -31,8 +36,9 @@ namespace kzip
             return null; // do nothing ..
         }
 
-        OptionEntry AddMd5Entry(string filename, ZipFile zFile)
+        ZipEntry AddMd5Entry(string filename, ZipFile zFile)
         {
+            if (!File.Exists(filename)) return null;
             string fileMd5 = String.Empty;
             using (var fs = File.OpenRead(filename))
             {
@@ -41,19 +47,27 @@ namespace kzip
             if (hash2Filenames.ContainsKey(fileMd5))
             {
                 hash2Filenames[fileMd5].Item2.Add(filename);
-                return OptionEntry.Failure;
+                return null;
             }
-            var newEntry = zFile.AddFile(filename);
-            newEntry.FileName = fileMd5;
+
+            var newEntry = zFile.AddEntry(fileMd5, (md5, zs) => 
+            {
+                using (var ins = File.OpenRead(filename))
+                {
+                    ins.CopyTo(zs);
+                }
+            });
+
             var newTuple = new Tuple<long, List<string>>(
                 (new FileInfo(filename)).Length, new List<string>());
             newTuple.Item2.Add(filename);
             hash2Filenames.Add(fileMd5, newTuple);
-            return new OptionEntry(newEntry);
+            return newEntry;
         }
 
-        OptionEntry AddHashEntry(string filename,ZipFile zFile)
+        ZipEntry AddHashEntry(string filename,ZipFile zFile)
         {
+            if (!File.Exists(filename)) return null;
             var buf = new byte[64 * 1024];
             int readSize = 0;
             var hasher = new xxHash();
@@ -71,15 +85,20 @@ namespace kzip
             if (hash2Filenames.ContainsKey(fileHash))
             {
                 hash2Filenames[fileHash].Item2.Add(filename);
-                return OptionEntry.Failure;
+                return null;
             }
-            var newEntry = zFile.AddFile(filename);
-            newEntry.FileName = fileHash;
+            var newEntry = zFile.AddEntry(fileHash, (hashOnly, zs) =>
+            {
+                using (var ins = File.OpenRead(filename))
+                {
+                    ins.CopyTo(zs);
+                }
+            });
             var newTuple = new Tuple<long, List<string>>(
                 (new FileInfo(filename)).Length, new List<string>());
             newTuple.Item2.Add(filename);
             hash2Filenames.Add(fileHash, newTuple);
-            return new OptionEntry(newEntry);
+            return newEntry;
         }
 
         ZipSizes GetHashZipSizes(string hashFilename, ZipFile zFile)
@@ -100,8 +119,9 @@ namespace kzip
                     buf.AppendLine($"{keyThe}  {FixDirectorySep(fname)}");
                 }
             }
-            zFile.AddEntry(hashFilename,
+            var contentEntry = zFile.AddEntry(hashFilename,
                 ZipEnvir.Encoding.GetBytes(buf.ToString()));
+            contentEntry.Password = null;
             return new ZipSizes(oldCnt,oldSize,redSize);
         }
 
@@ -149,7 +169,7 @@ namespace kzip
                 return false;
             }
 
-            Action<string> Print = arg => Console.WriteLine(arg);
+            Action<string> Print = arg => Console.Write(arg);
             if (ZipEnvir.Quiet)
             {
                 Print = _ => { };
@@ -159,36 +179,7 @@ namespace kzip
             using (var outz = new ZipFile())
             {
                 int cntAdded = 0;
-                switch (Level)
-                {
-                    case "1":
-                        outz.CompressionLevel = CompressionLevel.Level1;
-                        break;
-                    case "2":
-                        outz.CompressionLevel = CompressionLevel.Level2;
-                        break;
-                    case "3":
-                        outz.CompressionLevel = CompressionLevel.Level3;
-                        break;
-                    case "4":
-                        outz.CompressionLevel = CompressionLevel.Level4;
-                        break;
-                    case "6":
-                        outz.CompressionLevel = CompressionLevel.Level6;
-                        break;
-                    case "7":
-                        outz.CompressionLevel = CompressionLevel.Level7;
-                        break;
-                    case "8":
-                        outz.CompressionLevel = CompressionLevel.Level8;
-                        break;
-                    case "9":
-                        outz.CompressionLevel = CompressionLevel.Level9;
-                        break;
-                    default:
-                        outz.CompressionLevel = CompressionLevel.Level5;
-                        break;
-                }
+                outz.CompressionLevel = Level;
                 outz.UseZip64WhenSaving = Zip64Option.AsNecessary;
                 outz.AlternateEncodingUsage = ZipOption.AsNecessary;
                 outz.AlternateEncoding = ZipEnvir.Encoding;
@@ -210,10 +201,15 @@ namespace kzip
                     {
                         Print(fname);
                         var rslt = AddEntry(fname, outz);
-                        if (rslt.Succeeded)
+                        if (rslt==null)
+                        {
+                            Print(" skipped");
+                        }
+                        else
                         {
                             cntAdded += 1;
                         }
+                        Print(Environment.NewLine);
                     }
                     catch (ArgumentException)
                     {   // Do nothing
@@ -255,19 +251,20 @@ namespace kzip
                     Print($"#OriginalFiles:{sizes.Item1}" +
                         $"; ReducedRatio={reduced:N0}%");
                 }
+                Print(Environment.NewLine);
             }
             return true;
         }
 
         #region "Properties"
-        string Level = String.Empty;
-        EncryptionAlgorithm Encrypt = 
-            EncryptionAlgorithm.WinZipAes256;
+        CompressionLevel Level = CompressionLevel.Level5;
+        EncryptionAlgorithm Encrypt = EncryptionAlgorithm.WinZipAes256;
         string Password = String.Empty;
         string TempDir = String.Empty;
         string ReadFileNameFrom = String.Empty;
-        Func<string, ZipFile, OptionEntry> AddEntry;
+        Func<string, ZipFile, ZipEntry> AddEntry;
         Func<ZipFile, ZipSizes> GetZipSizes;
+        protected WriteDelegate writeDelegateThe;
 
         public override IReadOnlyCollection<SwitchCfgSetup> SwitchSetups =>
             new SwitchCfgSetup[] {
@@ -299,12 +296,12 @@ namespace kzip
         public override IReadOnlyCollection<ITypeCfgSetup> TypeSetups =>
             new ITypeCfgSetup[] {
                 new ValueCfgFactory<string>(
-                    arg => new Result<string>(arg),
+                    arg => arg,
                     arg => arg,
                     new ValueCfgSetup<string>[]
                     {
                         new ValueCfgSetup<string>(
-                            'p',"password",String.Empty,
+                            'p',"password","=PASSWORD",
                             ()=>Helper.Absent,
                             val=>{
                                 if (!String.IsNullOrEmpty(val))
@@ -320,51 +317,7 @@ namespace kzip
                             ()=>Helper.Absent,
                             val => {TempDir=val; }),
                         new ValueCfgSetup<string>(
-                            "level","=1 to 9 (0:Store; 5:Default; 9:Best)",
-                            () => {
-                                if ((new string[]{"1","2","3","4",
-                                    "6","7","8","9"})
-                                .Contains(Level))
-                                {
-                                    return Level;
-                                };
-                                return Helper.Absent;
-                            },
-                            val => { Level=val; }),
-                        new ValueCfgSetup<string>(
-                            "encrypt","=[256|128|weak] (256:Default)",
-                            () =>
-                            {
-                                switch (Encrypt)
-                                {
-                                    case EncryptionAlgorithm.WinZipAes128:
-                                        return "128";
-                                    case EncryptionAlgorithm.PkzipWeak:
-                                        return "weak";
-                                    default:
-                                        return Helper.Absent;
-                                }
-                            },
-                            val =>
-                            {
-                                switch(val)
-                                {
-                                    case "128":
-                                        Encrypt = 
-                                        EncryptionAlgorithm.WinZipAes128;
-                                        break;
-                                    case "weak":
-                                        Encrypt =
-                                        EncryptionAlgorithm.PkzipWeak;
-                                        break;
-                                    default:
-                                        Encrypt =
-                                        EncryptionAlgorithm.WinZipAes256;
-                                        break;
-                                }
-                            }),
-                        new ValueCfgSetup<string>(
-                            'T',"list","=listFile\t Console if -",
+                            'T',"list","=FILE\t Console if -",
                             () => Helper.Absent,
                             val =>
                             {
@@ -378,6 +331,64 @@ namespace kzip
                                     $"'{val}' is not valid 'read-from' option");
                             })
                     }),
+                new ValueCfgFactory<EncryptionAlgorithm>(
+                    arg => {
+                        if (!String.IsNullOrEmpty(arg))
+                        {
+                            switch (arg.ToLower())
+                            {
+                                case "weak":
+                                    return EncryptionAlgorithm.PkzipWeak;
+                                case "128":
+                                    return EncryptionAlgorithm.WinZipAes128;
+                            }
+                        }
+                        return EncryptionAlgorithm.WinZipAes256;
+                    },
+                    arg => {
+                        switch (arg)
+                        {
+                            case EncryptionAlgorithm.WinZipAes128:
+                                return "128";
+                            case EncryptionAlgorithm.PkzipWeak:
+                                return "weak";
+                            default:
+                                return Helper.Absent;
+                        }
+                    },
+                    new ValueCfgSetup<EncryptionAlgorithm>(
+                        "encrypt", "=[256|128|weak]\t Default:256",
+                        () => Encrypt,
+                        val => { Encrypt = val; }
+                        )
+                    ),
+                new ValueCfgFactory<CompressionLevel>(
+                    arg => {
+                        if (String.IsNullOrEmpty(arg))
+                        {
+                            return CompressionLevel.Level5;
+                        }
+                        switch (arg)
+                        {
+                            case "0": return CompressionLevel.Level0;
+                            case "2": return CompressionLevel.Level9;
+                        };
+                        return CompressionLevel.Level5;
+                    },
+                    arg => {
+                        switch (arg)
+                        {
+                            case CompressionLevel.Level0: return "0";
+                            case CompressionLevel.Level9: return "2";
+                            default: return Helper.Absent;
+                        }
+                    },
+                    new ValueCfgSetup<CompressionLevel>(
+                        'l',"level","=[0|1|2]\t Default:1",
+                        () => Level,
+                        val => { Level = val; }
+                        )
+                    ),
             };
         #endregion
 
