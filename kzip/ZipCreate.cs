@@ -150,19 +150,6 @@ namespace kzip
 
             var fnames = ReadFileNameFrom.AddFromFileList(opts);
 
-            if (!String.IsNullOrEmpty(ReadFileNameFrom))
-            {
-                Stream inps;
-                if (ReadFileNameFrom=="-")
-                {
-                    inps = Console.OpenStandardInput();
-                }
-                else
-                {
-                    inps = File.OpenRead(ReadFileNameFrom);
-                }
-            }
-
             if (fnames.Count==0)
             {
                 Console.WriteLine("No input file is specified!");
